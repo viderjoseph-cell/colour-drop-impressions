@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Editor — Colour Drop Impression</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{background:var(--paper);}
+  .admin-wrap{max-width:880px; margin:0 auto; padding:50px 24px 100px;}
+  .admin-header{display:flex; align-items:center; gap:12px; margin-bottom:8px;}
+  .admin-header img{width:40px; height:40px; border-radius:50%;}
+  .admin-header h1{font-size:1.3rem; margin:0;}
+  .admin-sub{color:var(--ink-soft); margin-bottom:36px;}
+  .gate{max-width:400px; margin:12vh auto; background:var(--white); border:1px solid var(--line); border-radius:var(--radius-l); padding:36px; box-shadow:var(--shadow); text-align:center;}
+  .gate h2{font-size:1.3rem;}
+  .gate input{width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line); margin:16px 0; font-size:1rem; text-align:center;}
+  .gate .warn{font-size:0.78rem; color:var(--ink-soft); margin-top:18px; line-height:1.5;}
+  .panel{display:none;}
+  .panel.show{display:block;}
+  .gate.hide{display:none;}
+  .notice{background:var(--gold-soft); border-radius:var(--radius-m); padding:16px 20px; font-size:0.86rem; color:#6b4a0c; margin-bottom:34px; line-height:1.6;}
+  fieldset{border:1px solid var(--line); border-radius:var(--radius-m); padding:24px 24px 8px; margin-bottom:26px; background:var(--white);}
+  legend{font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1.02rem; padding:0 8px;}
+  .f-row{margin-bottom:16px;}
+  .f-row label{display:block; font-size:0.82rem; font-weight:600; margin-bottom:6px; color:var(--ink);}
+  .f-row .hint{font-weight:400; color:var(--ink-soft); font-size:0.78rem;}
+  .f-row input, .f-row textarea{
+    width:100%; padding:11px 13px; border-radius:9px; border:1.5px solid var(--line); background:var(--paper);
+    font-family:inherit; font-size:0.92rem; color:var(--ink); resize:vertical;
+  }
+  .f-row input:focus, .f-row textarea:focus{outline:2px solid var(--pink); outline-offset:1px; background:var(--white);}
+  .svc-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 18px;}
+  @media (max-width:640px){.svc-grid{grid-template-columns:1fr;}}
+  .actions{position:sticky; bottom:0; background:linear-gradient(0deg, var(--paper) 60%, transparent); padding:24px 0 10px; display:flex; gap:14px; flex-wrap:wrap; align-items:center;}
+  #saveMsg{font-size:0.85rem; color:var(--teal); display:none;}
+  .logout{font-size:0.82rem; color:var(--ink-soft); text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; font-family:inherit;}
+  .load-state{text-align:center; padding:60px 20px; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<!-- ===== PASSWORD GATE ===== -->
+<div class="gate" id="gate">
+  <h2>🔒 Site Editor</h2>
+  <p style="font-size:0.9rem;">Enter the editor password to make changes to the website content.</p>
+  <input type="password" id="pwInput" placeholder="Password" autocomplete="off">
+  <button class="btn btn-primary" style="width:100%;" id="pwSubmit">Unlock editor</button>
+  <p id="pwError" style="color:var(--pink); font-size:0.82rem; display:none;">Wrong password — try again.</p>
+  <p class="warn">⚠️ This password only hides the page from casual visitors — it is not real security (anyone who views this file's source code can see and bypass it). Don't use it to protect anything sensitive. See the README for how to add real login protection.</p>
+</div>
+
+<!-- ===== EDITOR PANEL ===== -->
+<div class="admin-wrap panel" id="panel">
+  <div class="admin-header">
+    <img src="images/logo.jpg" alt="">
+    <h1>Colour Drop Impression — Site Editor</h1>
+  </div>
+  <p class="admin-sub">Update your website's text here, then download the updated file and send it to whoever manages your hosting (or upload it yourself if you have that access).</p>
+
+  <div class="notice">
+    <strong>How this works:</strong> this page loads the text currently in <code>index.html</code>, lets you edit it, and on request builds a brand-new <code>index.html</code> with your changes — ready to replace the old one on your host. It does not publish changes live by itself.
+  </div>
+
+  <div id="loadState" class="load-state">Loading current site content…</div>
+  <form id="editorForm" style="display:none;">
+
+    <fieldset>
+      <legend>Homepage intro</legend>
+      <div class="f-row">
+        <label>Subheading under the main headline</label>
+        <textarea rows="2" data-field="hero-lead"></textarea>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>About us</legend>
+      <div class="f-row"><label>Paragraph 1</label><textarea rows="3" data-field="about-p1"></textarea></div>
+      <div class="f-row"><label>Paragraph 2 <span class="hint">(keep the wording around "bring your ideas to life" if you can — it's styled bold)</span></label><textarea rows="3" data-field="about-p2" data-html="1"></textarea></div>
+      <div class="f-row"><label>Value 1</label><input data-field="mission-1"></div>
+      <div class="f-row"><label>Value 2</label><input data-field="mission-2"></div>
+      <div class="f-row"><label>Value 3</label><input data-field="mission-3"></div>
+      <div class="f-row"><label>Value 4</label><input data-field="mission-4"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Founder / CEO bio</legend>
+      <div class="f-row"><textarea rows="3" data-field="ceo-bio"></textarea></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Achievements</legend>
+      <div class="f-row"><label>Paragraph <span class="hint">(keep the bold award name if you'd like it highlighted)</span></label><textarea rows="3" data-field="achieve-p" data-html="1"></textarea></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Services</legend>
+      <div id="servicesHost"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Contact details</legend>
+      <div class="f-row"><label>Phone / WhatsApp number 1 <span class="hint">(Ghana local format, e.g. 0594953352 — this is also the number your Get-a-Quote button messages)</span></label><input data-field="phone1"></div>
+      <div class="f-row"><label>Phone number 2</label><input data-field="phone2"></div>
+      <div class="f-row"><label>Email address</label><input data-field="email"></div>
+      <div class="f-row"><label>Studio / pickup line</label><input data-field="address-line"></div>
+      <div class="f-row"><label>Payment &amp; pricing note</label><textarea rows="2" data-field="payment-note"></textarea></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Footer</legend>
+      <div class="f-row"><textarea rows="2" data-field="footer-blurb"></textarea></div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" class="btn btn-primary btn-lg" id="generateBtn">⬇ Download updated index.html</button>
+      <span id="saveMsg"></span>
+    </div>
+    <p style="font-size:0.8rem; color:var(--ink-soft); margin-top:10px;">
+      This replaces only <strong>index.html</strong> — <code>script.js</code>, <code>styles.css</code> and the <code>images</code> folder stay exactly as they are, so just drop the new file in alongside them.
+    </p>
+    <p style="margin-top:30px;"><button type="button" class="logout" id="logoutBtn">Lock editor</button></p>
+  </form>
+</div>
+
+<script src="admin.js" defer></script>
+</body>
+</html>
